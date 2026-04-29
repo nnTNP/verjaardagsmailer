@@ -456,7 +456,7 @@ async function msLogin() {
   try {
     await loadMsal();
     msalClient = new msal.PublicClientApplication({
-      auth: { clientId, authority: `https://login.microsoftonline.com/${tenantId}`, redirectUri: window.location.href.split('?')[0] },
+      auth: { clientId, authority: `https://login.microsoftonline.com/${tenantId}`, redirectUri: "https://nntnp.github.io/verjaardagsmailer/AdminPulse-Verjaardagsmailer.html" },
       cache: { cacheLocation: 'sessionStorage' }
     });
     await msalClient.initialize();
