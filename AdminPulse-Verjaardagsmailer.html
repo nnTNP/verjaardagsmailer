@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AdminPulse — Verjaardagsmail</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F4F0;
+    --surface: #FFFFFF;
+    --border: #E2E0D8;
+    --border-strong: #C8C5BB;
+    --text: #1A1916;
+    --text-muted: #6B6860;
+    --text-faint: #A09E97;
+    --accent: #2D5BE3;
+    --accent-light: #EEF2FD;
+    --success: #16A34A;
+    --success-bg: #F0FDF4;
+    --warn-bg: #FFFBEB;
+    --warn: #92400E;
+    --error-bg: #FEF2F2;
+    --error: #991B1B;
+    --nl: #1D4ED8; --nl-bg: #EFF6FF;
+    --fr: #92400E; --fr-bg: #FFFBEB;
+    --en: #166534; --en-bg: #F0FDF4;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* LAYOUT */
+  .shell { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+  .sidebar { background: var(--surface); border-right: 1px solid var(--border); padding: 0; display: flex; flex-direction: column; }
+  .sidebar-logo { padding: 24px 20px 16px; border-bottom: 1px solid var(--border); }
+  .logo-mark { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 500; color: var(--text-faint); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 4px; }
+  .logo-title { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.3; }
+  .sidebar-nav { padding: 12px 10px; flex: 1; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all 0.15s; margin-bottom: 2px; border: none; background: none; width: 100%; text-align: left; }
+  .nav-item:hover { background: var(--bg); color: var(--text); }
+  .nav-item.active { background: var(--accent-light); color: var(--accent); }
+  .nav-icon { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.7; }
+  .nav-item.active .nav-icon { opacity: 1; }
+  .nav-badge { margin-left: auto; font-size: 11px; background: var(--accent); color: white; border-radius: 99px; padding: 1px 7px; font-weight: 600; }
+  .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); }
+  .version-pill { font-size: 11px; color: var(--text-faint); font-family: 'DM Mono', monospace; }
+
+  .main { overflow-y: auto; }
+  .page { display: none; padding: 32px; max-width: 720px; }
+  .page.active { display: block; }
+  .page-header { margin-bottom: 28px; }
+  .page-title { font-size: 22px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .page-sub { font-size: 14px; color: var(--text-muted); }
+
+  /* CARDS */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+  .card-title { font-size: 11px; font-weight: 600; color: var(--text-faint); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 16px; }
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+  label { font-size: 13px; font-weight: 500; color: var(--text-muted); display: block; margin-bottom: 5px; }
+  input[type=text], input[type=password], input[type=email], select, textarea {
+    width: 100%; padding: 9px 12px; font-size: 14px; font-family: 'DM Sans', sans-serif;
+    border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg);
+    color: var(--text); outline: none; transition: border-color 0.15s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); background: white; }
+  textarea { min-height: 80px; resize: vertical; line-height: 1.6; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .check-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); margin-top: 10px; }
+  input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--accent); }
+
+  /* BUTTONS */
+  .btn { padding: 9px 18px; font-size: 13px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); transition: all 0.15s; }
+  .btn:hover { background: var(--bg); }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+  .btn-primary:hover { background: #1e4acc; border-color: #1e4acc; }
+  .btn-full { width: 100%; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-group { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+
+  /* BADGES */
+  .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 99px; }
+  .badge-nl { background: var(--nl-bg); color: var(--nl); }
+  .badge-fr { background: var(--fr-bg); color: var(--fr); }
+  .badge-en { background: var(--en-bg); color: var(--en); }
+  .badge-ok { background: var(--success-bg); color: var(--success); }
+  .badge-pending { background: var(--warn-bg); color: var(--warn); }
+  .badge-muted { background: var(--bg); color: var(--text-faint); border: 1px solid var(--border); }
+
+  /* STATUS */
+  .alert { padding: 11px 14px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 14px; line-height: 1.5; }
+  .alert-info { background: var(--accent-light); color: var(--accent); }
+  .alert-success { background: var(--success-bg); color: var(--success); }
+  .alert-error { background: var(--error-bg); color: var(--error); }
+  .alert-warn { background: var(--warn-bg); color: var(--warn); }
+
+  /* CLIENT CARDS */
+  .client-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 8px; transition: border-color 0.15s; }
+  .client-card:hover { border-color: var(--border-strong); }
+  .client-card.sent { border-left: 3px solid var(--success); }
+  .client-row { display: flex; align-items: center; gap: 12px; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent-light); color: var(--accent); font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .client-info { flex: 1; min-width: 0; }
+  .client-name { font-size: 14px; font-weight: 500; }
+  .client-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .client-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+
+  /* SPINNER */
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border-strong); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 5px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* WEATHER PILLS */
+  .weather-strip { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0 0; }
+  .w-pill { font-size: 12px; color: var(--text-muted); background: var(--bg); border: 1px solid var(--border); border-radius: 99px; padding: 3px 10px; }
+
+  /* PREVIEW */
+  .preview-box { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; font-size: 13px; line-height: 1.8; white-space: pre-wrap; max-height: 280px; overflow-y: auto; color: var(--text); font-family: 'DM Sans', sans-serif; }
+  .subject-line { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; }
+
+  /* LOG */
+  .log-card { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--success); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 8px; }
+  .log-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .log-preview { font-size: 12px; color: var(--text-muted); line-height: 1.6; max-height: 60px; overflow: hidden; }
+
+  /* AZURE SETUP */
+  .step-block { display: flex; gap: 14px; margin-bottom: 18px; }
+  .step-num { width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: white; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .step-content { flex: 1; }
+  .step-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .step-desc { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+  .step-desc a { color: var(--accent); text-decoration: none; }
+  .step-desc a:hover { text-decoration: underline; }
+  .code-block { font-family: 'DM Mono', monospace; font-size: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; margin-top: 6px; color: var(--text); word-break: break-all; }
+
+  /* MS CONNECT */
+  .ms-connect-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 16px; font-size: 14px; font-weight: 500; font-family: 'DM Sans', sans-serif; cursor: pointer; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); transition: all 0.15s; }
+  .ms-connect-btn:hover { background: var(--bg); }
+  .ms-logo { width: 20px; height: 20px; flex-shrink: 0; }
+  .connected-box { display: flex; align-items: center; gap: 10px; padding: 11px 14px; background: var(--success-bg); border: 1px solid #86efac; border-radius: var(--radius-sm); font-size: 13px; color: var(--success); font-weight: 500; }
+
+  .empty-state { text-align: center; padding: 48px 24px; color: var(--text-muted); }
+  .empty-icon { font-size: 32px; margin-bottom: 12px; }
+  .empty-title { font-size: 15px; font-weight: 500; margin-bottom: 6px; color: var(--text); }
+  .empty-desc { font-size: 13px; }
+
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">AdminPulse</div>
+      <div class="logo-title">Verjaardags&shy;mailer</div>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" onclick="showPage('setup')" id="nav-setup">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 1.5a5.5 5.5 0 110 11 5.5 5.5 0 010-11zM8 4a.75.75 0 01.75.75v3.5l2.25 1.3a.75.75 0 11-.75 1.3L7.5 9.1V4.75A.75.75 0 018 4z" fill="currentColor"/></svg>
+        Azure Setup
+      </button>
+      <button class="nav-item" onclick="showPage('config')" id="nav-config">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M8 1.5A6.5 6.5 0 108 14.5 6.5 6.5 0 008 1.5zM0 8a8 8 0 1116 0A8 8 0 010 8z" fill="currentColor" opacity=".3"/><path d="M8 5a3 3 0 100 6A3 3 0 008 5zm-1.5 3a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z" fill="currentColor"/></svg>
+        Configuratie
+      </button>
+      <button class="nav-item" onclick="showPage('clients')" id="nav-clients">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M5.5 3.5a2.5 2.5 0 115 0 2.5 2.5 0 01-5 0zM8 1a2.5 2.5 0 100 5A2.5 2.5 0 008 1zM3 13c0-2.761 2.239-5 5-5s5 2.239 5 5H3z" fill="currentColor"/></svg>
+        Verjaardagen
+        <span class="nav-badge" id="badge-count" style="display:none">0</span>
+      </button>
+      <button class="nav-item" onclick="showPage('preview')" id="nav-preview">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M2 3h12v10H2V3zm1.5 1.5v7h9v-7h-9zM5 7h6v1.5H5V7z" fill="currentColor"/></svg>
+        Voorbeeld
+      </button>
+      <button class="nav-item" onclick="showPage('log')" id="nav-log">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M13 2H3a1 1 0 00-1 1v10a1 1 0 001 1h10a1 1 0 001-1V3a1 1 0 00-1-1zM4 5h8v1H4V5zm0 3h8v1H4V8zm0 3h5v1H4v-1z" fill="currentColor"/></svg>
+        Concepten
+        <span class="nav-badge" id="badge-log" style="display:none">0</span>
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="version-pill">v3.0 — standalone</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- PAGE: AZURE SETUP -->
+    <div class="page active" id="page-setup">
+      <div class="page-header">
+        <div class="page-title">Azure App instellen</div>
+        <div class="page-sub">Eenmalige setup — ca. 10 minuten</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Waarom Azure?</div>
+        <p style="font-size:13px;color:var(--text-muted);line-height:1.7;margin-bottom:12px">
+          Om conceptmails aan te maken in uw Outlook heeft deze app toestemming nodig van Microsoft. Dit gaat via een gratis Azure App Registration. U registreert de app eenmalig, daarna werkt alles automatisch.
+        </p>
+        <div class="alert alert-info">
+          U heeft een Microsoft 365 / Azure account nodig. Ga naar <a href="https://portal.azure.com" target="_blank" style="color:var(--accent);font-weight:500">portal.azure.com</a> en volg de stappen hieronder.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Stap voor stap</div>
+
+        <div class="step-block">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">Ga naar Azure Portal → App registrations</div>
+            <div class="step-desc">Open <a href="https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade" target="_blank">portal.azure.com → App registrations</a> en klik op <strong>+ New registration</strong>.</div>
+          </div>
+        </div>
+
+        <div class="step-block">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">App registreren</div>
+            <div class="step-desc">
+              Vul in:<br>
+              • <strong>Name:</strong> AdminPulse Verjaardagsmailer<br>
+              • <strong>Supported account types:</strong> Accounts in this organizational directory only<br>
+              • <strong>Redirect URI:</strong> kies <em>Single-page application (SPA)</em> en vul in:
+              <div class="code-block">http://localhost</div>
+              Klik <strong>Register</strong>.
+            </div>
+          </div>
+        </div>
+
+        <div class="step-block">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">Client ID en Tenant ID kopiëren</div>
+            <div class="step-desc">Na registratie ziet u het overzicht. Kopieer:<br>
+              • <strong>Application (client) ID</strong><br>
+              • <strong>Directory (tenant) ID</strong><br>
+              Plak deze hieronder en op het Configuratie-tabblad.
+            </div>
+          </div>
+        </div>
+
+        <div class="step-block">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-title">API permissions instellen</div>
+            <div class="step-desc">
+              Ga naar <strong>API permissions → Add a permission → Microsoft Graph → Delegated permissions</strong>.<br>
+              Voeg toe:<br>
+              • <code>Mail.ReadWrite</code> — concepten aanmaken in Outlook<br>
+              • <code>User.Read</code> — inloggen<br>
+              Klik daarna op <strong>Grant admin consent</strong>.
+            </div>
+          </div>
+        </div>
+
+        <div class="step-block">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <div class="step-title">Redirect URI controleren</div>
+            <div class="step-desc">
+              Ga naar <strong>Authentication</strong>. Controleer dat onder <em>Single-page application</em> de URI staat:
+              <div class="code-block">http://localhost</div>
+              Sla op. De setup is klaar!
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <div style="font-size:13px;color:var(--text-muted)">Vul hieronder uw gegevens in ter controle, dan neemt de app ze automatisch over op het Configuratie-tabblad.</div>
+        <div class="row2" style="margin-top:12px">
+          <div class="field">
+            <label>Application (Client) ID</label>
+            <input type="text" id="setup-client-id" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" oninput="syncAzure()">
+          </div>
+          <div class="field">
+            <label>Directory (Tenant) ID</label>
+            <input type="text" id="setup-tenant-id" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" oninput="syncAzure()">
+          </div>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="showPage('config')" style="margin-top:4px">Ga naar Configuratie →</button>
+      </div>
+    </div>
+
+    <!-- PAGE: CONFIG -->
+    <div class="page" id="page-config">
+      <div class="page-header">
+        <div class="page-title">Configuratie</div>
+        <div class="page-sub">Vul uw gegevens in en test de verbinding</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Microsoft 365 verbinding</div>
+        <div class="row2" style="margin-bottom:14px">
+          <div class="field">
+            <label>Azure Client ID</label>
+            <input type="text" id="cfg-client-id" placeholder="van Azure App Registration">
+          </div>
+          <div class="field">
+            <label>Azure Tenant ID</label>
+            <input type="text" id="cfg-tenant-id" placeholder="van Azure App Registration">
+          </div>
+        </div>
+        <div id="ms-status"></div>
+        <button class="ms-connect-btn" onclick="msLogin()">
+          <svg class="ms-logo" viewBox="0 0 23 23" fill="none">
+            <rect x="1" y="1" width="10" height="10" fill="#F25022"/>
+            <rect x="12" y="1" width="10" height="10" fill="#7FBA00"/>
+            <rect x="1" y="12" width="10" height="10" fill="#00A4EF"/>
+            <rect x="12" y="12" width="10" height="10" fill="#FFB900"/>
+          </svg>
+          <span id="ms-btn-text">Aanmelden bij Microsoft 365</span>
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">AdminPulse</div>
+        <div class="row2">
+          <div class="field">
+            <label>API sleutel</label>
+            <input type="password" id="cfg-ap-key" placeholder="ap_live_xxxxxxxx">
+          </div>
+          <div class="field">
+            <label>Anthropic API sleutel</label>
+            <input type="password" id="cfg-claude-key" placeholder="sk-ant-xxxxxxxx">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Mail instellingen</div>
+        <div class="row2">
+          <div class="field">
+            <label>Uw naam / kantoor</label>
+            <input type="text" id="cfg-from-name" placeholder="Uw naam of kantoornaam">
+          </div>
+          <div class="field">
+            <label>Toon</label>
+            <select id="cfg-tone">
+              <option value="warm-professioneel">Warm &amp; professioneel</option>
+              <option value="formeel">Formeel</option>
+              <option value="informeel">Informeel &amp; speels</option>
+            </select>
+          </div>
+        </div>
+        <div class="row2" style="margin-top:12px">
+          <div class="field">
+            <label>Standaard taal (fallback)</label>
+            <select id="cfg-fallback-lang">
+              <option value="nl">Nederlands</option>
+              <option value="fr">Français</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:flex-end;padding-bottom:2px">
+            <div class="check-row" style="margin:0">
+              <input type="checkbox" id="cfg-weather" checked>
+              <label for="cfg-weather" style="margin:0">Weer in tekst verwerken</label>
+            </div>
+          </div>
+        </div>
+        <div class="field" style="margin-top:12px">
+          <label>Extra boodschap (optioneel)</label>
+          <textarea id="cfg-extra" placeholder="Bijv. We kijken ernaar uit u binnenkort te ontmoeten voor uw jaarlijkse boekhouding..."></textarea>
+        </div>
+      </div>
+
+      <button class="btn btn-primary btn-full" onclick="goToClients()">Zoek verjaardagen vandaag →</button>
+    </div>
+
+    <!-- PAGE: CLIENTS -->
+    <div class="page" id="page-clients">
+      <div class="page-header">
+        <div class="page-title">Verjaardagen vandaag</div>
+        <div class="page-sub" id="clients-sub">Klanten met verjaardag op vandaag</div>
+      </div>
+      <div id="clients-status"></div>
+      <div id="clients-list">
+        <div class="empty-state">
+          <div class="empty-icon">🎂</div>
+          <div class="empty-title">Nog geen klanten geladen</div>
+          <div class="empty-desc">Ga naar Configuratie en klik op "Zoek verjaardagen vandaag".</div>
+        </div>
+      </div>
+      <div id="clients-actions" style="display:none;margin-top:16px">
+        <button class="btn btn-primary btn-full" id="btn-send-all" onclick="sendAllDrafts()">
+          Alle mails genereren &amp; in Outlook-concepten plaatsen
+        </button>
+      </div>
+    </div>
+
+    <!-- PAGE: PREVIEW -->
+    <div class="page" id="page-preview">
+      <div class="page-header">
+        <div class="page-title">Voorbeeld mail</div>
+        <div class="page-sub">Bekijk en bewerk de gegenereerde mail</div>
+      </div>
+      <div id="preview-body">
+        <div class="empty-state">
+          <div class="empty-icon">✉️</div>
+          <div class="empty-title">Geen voorbeeld geselecteerd</div>
+          <div class="empty-desc">Klik op "Voorbeeld" bij een klant op het Verjaardagen-tabblad.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: LOG -->
+    <div class="page" id="page-log">
+      <div class="page-header">
+        <div class="page-title">Outlook-concepten</div>
+        <div class="page-sub">Aangemaakt vandaag — open Outlook om te versturen</div>
+      </div>
+      <div id="log-body">
+        <div class="empty-state">
+          <div class="empty-icon">📬</div>
+          <div class="empty-title">Nog geen concepten aangemaakt</div>
+          <div class="empty-desc">Genereer mails via het Verjaardagen-tabblad.</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── MSAL (Microsoft Authentication Library) ──────────────────────────────────
+const MSAL_CDN = 'https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js';
+let msalClient = null;
+let msToken = null;
+let msUser = null;
+
+function loadMsal() {
+  return new Promise((res, rej) => {
+    if (window.msal) { res(); return; }
+    const s = document.createElement('script');
+    s.src = MSAL_CDN;
+    s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+
+async function msLogin() {
+  const clientId = document.getElementById('cfg-client-id').value.trim();
+  const tenantId = document.getElementById('cfg-tenant-id').value.trim();
+  if (!clientId || !tenantId) {
+    setMsStatus('Vul eerst uw Azure Client ID en Tenant ID in.', 'error');
+    return;
+  }
+  document.getElementById('ms-btn-text').innerHTML = '<span class="spinner"></span> Laden...';
+  try {
+    await loadMsal();
+    msalClient = new msal.PublicClientApplication({
+      auth: { clientId, authority: `https://login.microsoftonline.com/${tenantId}`, redirectUri: window.location.href.split('?')[0] },
+      cache: { cacheLocation: 'sessionStorage' }
+    });
+    await msalClient.initialize();
+    const result = await msalClient.loginPopup({ scopes: ['Mail.ReadWrite', 'User.Read'] });
+    msUser = result.account;
+    const tokenRes = await msalClient.acquireTokenSilent({ scopes: ['Mail.ReadWrite'], account: msUser });
+    msToken = tokenRes.accessToken;
+    setMsStatus(`Verbonden als ${msUser.name} (${msUser.username})`, 'success');
+    document.getElementById('ms-btn-text').textContent = 'Opnieuw aanmelden';
+  } catch(e) {
+    setMsStatus('Aanmelden mislukt: ' + e.message, 'error');
+    document.getElementById('ms-btn-text').textContent = 'Opnieuw proberen';
+  }
+}
+
+function setMsStatus(msg, type) {
+  document.getElementById('ms-status').innerHTML = `<div class="alert alert-${type==='success'?'success':type==='error'?'error':'info'}" style="margin-bottom:12px">${msg}</div>`;
+}
+
+async function getValidToken() {
+  if (!msalClient || !msUser) throw new Error('Niet aangemeld bij Microsoft 365. Ga naar Configuratie en meld u aan.');
+  try {
+    const r = await msalClient.acquireTokenSilent({ scopes: ['Mail.ReadWrite'], account: msUser });
+    return r.accessToken;
+  } catch(e) {
+    const r = await msalClient.acquireTokenPopup({ scopes: ['Mail.ReadWrite'], account: msUser });
+    return r.accessToken;
+  }
+}
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+const S = { clients: [], selectedIdx: null, previewSubject: '', previewBody: '', log: [] };
+const FLAGS = { nl:'🇧🇪', fr:'🇫🇷', en:'🇬🇧' };
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.getElementById('nav-'+id).classList.add('active');
+}
+
+function syncAzure() {
+  document.getElementById('cfg-client-id').value = document.getElementById('setup-client-id').value;
+  document.getElementById('cfg-tenant-id').value = document.getElementById('setup-tenant-id').value;
+}
+
+function ini(n) { return (n||'??').split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2); }
+function detectLang(c) {
+  const r = (c.language||c.communicationLanguage||c.preferredLanguage||c.taal||c.langue||'').toLowerCase().trim();
+  if (r.startsWith('nl')||r==='dutch'||r==='nederlands') return 'nl';
+  if (r.startsWith('fr')||r==='french'||r==='français'||r==='francais') return 'fr';
+  if (r.startsWith('en')||r==='english') return 'en';
+  return null;
+}
+
+// ── ADMINPULSE ───────────────────────────────────────────────────────────────
+async function goToClients() {
+  const key = document.getElementById('cfg-ap-key').value.trim();
+  if (!key) { alert('Vul uw AdminPulse API sleutel in.'); return; }
+  showPage('clients');
+  const statusEl = document.getElementById('clients-status');
+  const listEl = document.getElementById('clients-list');
+  statusEl.innerHTML = `<div class="alert alert-info"><span class="spinner"></span> Verbinden met AdminPulse...</div>`;
+  listEl.innerHTML = '';
+  try {
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2,'0');
+    const mm = String(today.getMonth()+1).padStart(2,'0');
+    const resp = await fetch(`https://api.adminpulse.be/v1/relations?birthdayDay=${dd}&birthdayMonth=${mm}`, {
+      headers: { 'Authorization': `Bearer ${key}` }
+    });
+    if (!resp.ok) throw new Error(`AdminPulse fout ${resp.status}: ${await resp.text()}`);
+    const data = await resp.json();
+    const raw = data.data || data.items || data.relations || (Array.isArray(data)?data:[]);
+    const fallback = document.getElementById('cfg-fallback-lang').value;
+    S.clients = raw.filter(c=>c.email||c.emailAddress||(c.contactInfo&&c.contactInfo.email)).map(c=>{
+      const det = detectLang(c);
+      return { id:c.id||c.relationId, name:c.name||c.fullName||[c.firstName,c.lastName].filter(Boolean).join(' ')||'(Naam onbekend)', email:c.email||c.emailAddress||(c.contactInfo&&c.contactInfo.email), city:c.city||(c.address&&c.address.city)||'België', langDetected:det, langSource:det?'adminpulse':'fallback', lang:det||fallback, status:'pending' };
+    });
+    if (!S.clients.length) {
+      statusEl.innerHTML = `<div class="alert alert-info">Geen klanten met verjaardag vandaag (of geen e-mailadres ingesteld).</div>`;
+      return;
+    }
+    const auto = S.clients.filter(c=>c.langSource==='adminpulse').length;
+    statusEl.innerHTML = `<div class="alert alert-success">${S.clients.length} klant(en) gevonden — ${auto} taal uit AdminPulse, ${S.clients.length-auto} met fallback.</div>`;
+    document.getElementById('badge-count').style.display='inline';
+    document.getElementById('badge-count').textContent=S.clients.length;
+    renderClients();
+    document.getElementById('clients-actions').style.display='block';
+    document.getElementById('btn-send-all').disabled=false;
+  } catch(e) {
+    statusEl.innerHTML = `<div class="alert alert-error">${e.message}</div>`;
+  }
+}
+
+function renderClients() {
+  const el = document.getElementById('clients-list');
+  el.innerHTML = S.clients.map((c,i)=>{
+    const lc = `badge-${c.lang}`;
+    const src = c.langSource==='adminpulse'?'✓ AdminPulse':'fallback';
+    const stIcon = c.status==='sent'?'<span class="badge badge-ok">In Outlook ✓</span>':c.status==='generating'?`<span class="badge badge-pending"><span class="spinner"></span>Bezig...</span>`:'<span class="badge badge-muted">Wachtend</span>';
+    return `<div class="client-card ${c.status==='sent'?'sent':''}" id="cc-${i}">
+      <div class="client-row">
+        <div class="avatar">${ini(c.name)}</div>
+        <div class="client-info">
+          <div class="client-name">${c.name}</div>
+          <div class="client-meta">${c.email} · ${c.city}</div>
+        </div>
+        <div class="client-actions">
+          <span class="badge ${lc}">${FLAGS[c.lang]||''} ${c.lang.toUpperCase()} <span style="font-weight:400;opacity:.7">${src}</span></span>
+          ${stIcon}
+          <button class="btn btn-sm" onclick="previewClient(${i})">Voorbeeld</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── WEATHER ───────────────────────────────────────────────────────────────────
+async function getWeather(city) {
+  try {
+    const g = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=nl&format=json`);
+    const geo = await g.json();
+    if (!geo.results?.[0]) return null;
+    const {latitude,longitude} = geo.results[0];
+    const w = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto&forecast_days=2`);
+    const wd = await w.json();
+    const codes={0:'zonnig',1:'overwegend zonnig',2:'gedeeltelijk bewolkt',3:'bewolkt',45:'mistig',51:'lichte motregen',61:'lichte regen',63:'matige regen',65:'zware regen',80:'regenbuien',95:'onweer'};
+    const d=wd.daily;
+    return { today:{desc:codes[d.weathercode[0]]||'wisselvallig',max:Math.round(d.temperature_2m_max[0]),min:Math.round(d.temperature_2m_min[0]),rain:d.precipitation_sum[0]}, tomorrow:{desc:codes[d.weathercode[1]]||'wisselvallig',max:Math.round(d.temperature_2m_max[1]),min:Math.round(d.temperature_2m_min[1]),rain:d.precipitation_sum[1]} };
+  } catch(e) { return null; }
+}
+
+// ── AI GENERATION ─────────────────────────────────────────────────────────────
+function buildPrompt(c, weather) {
+  const tone = document.getElementById('cfg-tone').value;
+  const extra = document.getElementById('cfg-extra').value.trim();
+  const fromName = document.getElementById('cfg-from-name').value.trim() || 'Uw accountant';
+  const incW = document.getElementById('cfg-weather').checked;
+  const lm={nl:'Dutch',fr:'French',en:'English'};
+  const tm={'warm-professioneel':'warm and professional','formeel':'formal','informeel':'informal and cheerful'};
+  let wCtx='';
+  if (incW&&weather) wCtx=`Weather in ${c.city} today: ${weather.today.desc}, ${weather.today.min}–${weather.today.max}°C${weather.today.rain>1?', '+weather.today.rain+'mm rain':''}. Tomorrow: ${weather.tomorrow.desc}, ${weather.tomorrow.min}–${weather.tomorrow.max}°C${weather.tomorrow.rain>1?', '+weather.tomorrow.rain+'mm rain':''}.`;
+  return `Write a birthday congratulations email in ${lm[c.lang]||'Dutch'} for a client of an accounting firm.\nClient: ${c.name}\nSender: ${fromName}\nTone: ${tm[tone]||'warm and professional'}\n${wCtx?'Weather (weave in naturally, mention today AND tomorrow): '+wCtx:''}\n${extra?'Extra message: '+extra:''}\nRules:\n- Write ENTIRELY in ${lm[c.lang]||'Dutch'}\n- First line: "Onderwerp: ..." / "Objet: ..." / "Subject: ..."\n- 3-4 short paragraphs\n- ${incW&&weather?'Reference weather creatively':''}\n- Sign off from ${fromName}\n- No placeholder brackets`;
+}
+
+async function generateText(c, weather) {
+  const claudeKey = document.getElementById('cfg-claude-key').value.trim();
+  if (!claudeKey) throw new Error('Vul uw Anthropic API sleutel in op het Configuratie-tabblad.');
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:buildPrompt(c,weather)}]})
+  });
+  if (!r.ok) throw new Error(`Claude API fout: ${await r.text()}`);
+  const d = await r.json();
+  return d.content?.[0]?.text||'Kon geen tekst genereren.';
+}
+
+function parseSubject(text, lang) {
+  const pref={nl:'Onderwerp:',fr:'Objet:',en:'Subject:'};
+  const p=pref[lang]||'Onderwerp:';
+  for (const line of text.split('\n')) {
+    if (line.toLowerCase().startsWith(p.toLowerCase())) return {subject:line.replace(new RegExp(p,'i'),'').trim(),body:text.replace(line,'').trim()};
+  }
+  return {subject:`Verjaardagsgroeten voor ${text.split('\n')[0].slice(0,50)}`,body:text};
+}
+
+function toHtml(text) {
+  return `<div style="font-family:Calibri,Arial,sans-serif;font-size:14px;line-height:1.8;color:#1a1a1a">${text.split('\n\n').map(p=>`<p style="margin:0 0 14px 0">${p.replace(/\n/g,'<br>')}</p>`).join('')}</div>`;
+}
+
+// ── OUTLOOK DRAFT ─────────────────────────────────────────────────────────────
+async function createDraft(toEmail, subject, bodyHtml) {
+  const token = await getValidToken();
+  const resp = await fetch('https://graph.microsoft.com/v1.0/me/messages', {
+    method:'POST',
+    headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
+    body:JSON.stringify({subject,body:{contentType:'HTML',content:bodyHtml},toRecipients:[{emailAddress:{address:toEmail}}]})
+  });
+  if (!resp.ok) throw new Error(`Graph API fout: ${await resp.text()}`);
+  return await resp.json();
+}
+
+// ── PREVIEW ───────────────────────────────────────────────────────────────────
+async function previewClient(i) {
+  S.selectedIdx = i;
+  showPage('preview');
+  const c = S.clients[i];
+  const el = document.getElementById('preview-body');
+  el.innerHTML = `<div class="card"><div class="client-row" style="margin-bottom:12px"><div class="avatar">${ini(c.name)}</div><div class="client-info"><div class="client-name">${c.name}</div><div class="client-meta">${c.email} · ${c.city}</div></div><span class="badge badge-${c.lang}">${FLAGS[c.lang]||''} ${c.lang.toUpperCase()} — ${c.langSource==='adminpulse'?'uit AdminPulse':'standaard fallback'}</span></div><div class="alert alert-info"><span class="spinner"></span> Mail genereren...</div></div>`;
+  try {
+    let weather = null;
+    if (document.getElementById('cfg-weather').checked) {
+      weather = await getWeather(c.city||'Brussel');
+    }
+    const raw = await generateText(c, weather);
+    const {subject,body} = parseSubject(raw, c.lang);
+    S.previewSubject = subject; S.previewBody = body;
+    const wPills = weather ? `<div class="weather-strip"><span class="w-pill">Vandaag: ${weather.today.desc}, ${weather.today.min}–${weather.today.max}°C</span><span class="w-pill">Morgen: ${weather.tomorrow.desc}, ${weather.tomorrow.min}–${weather.tomorrow.max}°C</span></div>`:'';
+    el.innerHTML = `<div class="card">
+      <div class="client-row" style="margin-bottom:12px">
+        <div class="avatar">${ini(c.name)}</div>
+        <div class="client-info"><div class="client-name">${c.name}</div><div class="client-meta">${c.email} · ${c.city}</div></div>
+        <span class="badge badge-${c.lang}">${FLAGS[c.lang]||''} ${c.lang.toUpperCase()}</span>
+      </div>
+      ${wPills}
+      <div class="subject-line" style="margin-top:12px">Onderwerp: ${subject}</div>
+      <div class="preview-box">${body}</div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="sendOneDraft(${i})">In Outlook-concepten plaatsen</button>
+        <button class="btn" onclick="previewClient(${i})">Hergeneren</button>
+      </div>
+    </div>`;
+  } catch(e) {
+    el.innerHTML = `<div class="card"><div class="alert alert-error">${e.message}</div><button class="btn btn-primary" onclick="previewClient(${i})" style="margin-top:8px">Opnieuw proberen</button></div>`;
+  }
+}
+
+async function sendOneDraft(i) {
+  const c = S.clients[i];
+  const el = document.getElementById('preview-body');
+  const existing = el.querySelector('.btn-group');
+  if (existing) existing.innerHTML = `<span style="font-size:13px;color:var(--text-muted)"><span class="spinner"></span> Concept aanmaken in Outlook...</span>`;
+  S.clients[i].status = 'generating';
+  renderClients();
+  try {
+    await createDraft(c.email, S.previewSubject, toHtml(S.previewBody));
+    S.clients[i].status = 'sent';
+    S.log.push({name:c.name,email:c.email,lang:c.lang,subject:S.previewSubject,body:S.previewBody,time:new Date().toLocaleTimeString('nl-BE')});
+    renderClients();
+    renderLog();
+    if (existing) existing.innerHTML = `<span class="badge badge-ok" style="font-size:13px;padding:7px 14px">Concept staat in uw Outlook ✓</span><button class="btn" onclick="showPage('log')">Bekijk concepten →</button>`;
+    updateLogBadge();
+  } catch(e) {
+    S.clients[i].status = 'pending';
+    renderClients();
+    if (existing) existing.innerHTML = `<div class="alert alert-error">${e.message}</div><button class="btn btn-primary" onclick="sendOneDraft(${i})">Opnieuw proberen</button>`;
+  }
+}
+
+async function sendAllDrafts() {
+  const pending = S.clients.filter(c=>c.status!=='sent');
+  if (!pending.length) { alert('Alle mails zijn al aangemaakt.'); return; }
+  if (!confirm(`${pending.length} verjaardagsmails genereren en als concept in Outlook plaatsen?`)) return;
+  document.getElementById('btn-send-all').disabled = true;
+  const statusEl = document.getElementById('clients-status');
+  for (let i=0; i<S.clients.length; i++) {
+    if (S.clients[i].status==='sent') continue;
+    const c = S.clients[i];
+    S.clients[i].status = 'generating';
+    renderClients();
+    statusEl.innerHTML = `<div class="alert alert-info"><span class="spinner"></span> Mail genereren voor ${c.name} (${FLAGS[c.lang]} ${c.lang.toUpperCase()})...</div>`;
+    try {
+      let weather = null;
+      if (document.getElementById('cfg-weather').checked) weather = await getWeather(c.city||'Brussel');
+      const raw = await generateText(c, weather);
+      const {subject,body} = parseSubject(raw, c.lang);
+      await createDraft(c.email, subject, toHtml(body));
+      S.clients[i].status = 'sent';
+      S.log.push({name:c.name,email:c.email,lang:c.lang,subject,body,time:new Date().toLocaleTimeString('nl-BE')});
+      renderClients();
+      renderLog();
+      updateLogBadge();
+    } catch(e) {
+      S.clients[i].status = 'pending';
+      statusEl.innerHTML = `<div class="alert alert-error">Fout bij ${c.name}: ${e.message}</div>`;
+      renderClients();
+    }
+  }
+  statusEl.innerHTML = `<div class="alert alert-success">Klaar! Concepten staan in uw Outlook.</div>`;
+  document.getElementById('btn-send-all').disabled = false;
+  showPage('log');
+}
+
+function renderLog() {
+  const el = document.getElementById('log-body');
+  if (!S.log.length) { el.innerHTML = '<div class="empty-state"><div class="empty-icon">📬</div><div class="empty-title">Nog geen concepten aangemaakt</div></div>'; return; }
+  el.innerHTML = S.log.map(entry=>`
+    <div class="log-card">
+      <div class="log-header">
+        <div class="avatar">${ini(entry.name)}</div>
+        <div class="client-info"><div class="client-name">${entry.name}</div><div class="client-meta">${entry.email} · ${entry.time}</div></div>
+        <span class="badge badge-${entry.lang}">${FLAGS[entry.lang]||''} ${entry.lang.toUpperCase()}</span>
+        <span class="badge badge-ok">In Outlook ✓</span>
+      </div>
+      <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:4px">Onderwerp: ${entry.subject}</div>
+      <div class="log-preview">${entry.body}</div>
+    </div>`).join('');
+}
+
+function updateLogBadge() {
+  const b = document.getElementById('badge-log');
+  b.style.display = S.log.length?'inline':'none';
+  b.textContent = S.log.length;
+}
+</script>
+</body>
+</html>
